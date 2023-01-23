@@ -1,4 +1,5 @@
 #coding = utf8
+from cairo import SurfacePattern
 import cv2
 import time
 import os
@@ -12,6 +13,12 @@ key = 'Jza_grmxv0wRt1wBvd5645tSUgvvviqC'
 sec = 'sYgt4gwzyVGOWj7_Nbbk7FxiPMwlU6tb'
 output = io.BytesIO()
 
+class NoFace (Exception):
+        def __init__(self, value):
+            self.value = value
+        def __str__(self):
+            return repr(self.value)
+
 def detect():
     cap = cv2.VideoCapture(0)
     while cap.isOpened():
@@ -23,16 +30,13 @@ def detect():
             scaleFactor = 1.05,
             minNeighbors = 15
         )
-        if len(faces) :
-            x = faces[0][0]
-            y = faces[0][1]
-            w = faces[0][2]
-            h = faces[0][3]
         cv2.imshow('test',img)
         if (cv2.waitKey(30) & 0xff == ord('q')) & len(faces) :
             cv2.destroyAllWindows()
-            x = x - 100
-            y = y + 100
+            x = faces[0][0] - 100
+            y = faces[0][1] + 100
+            w = faces[0][2]
+            h = faces[0][3]
             img_pil = Image.fromarray(cv2.cvtColor(img[x : x+w , y : y+h],cv2.COLOR_BGR2RGB))
             img_pil.save(output,format='JPEG')
             return output.getvalue()
@@ -55,7 +59,22 @@ def getemotion():
 
 if __name__ == '__main__' :
     try:
-        print(getemotion())
+        rb = getemotion()
+        if rb['face_num'] == 0:
+            raise NoFace("There isn't a face in the camera!")
+        ang = rb['faces'][0]['attributes']['emotion']['anger']
+        disg = rb['faces'][0]['attributes']['emotion']['disgust']
+        fear = rb['faces'][0]['attributes']['emotion']['fear']
+        neut = rb['faces'][0]['attributes']['emotion']['neutral']
+        sadn = rb['faces'][0]['attributes']['emotion']['sadness']
+        surp = rb['faces'][0]['attributes']['emotion']['surprise']
+        emo = [ang, disg, fear, neut, sadn, surp]
+        etype = ["ang", "disg", "fear", "neut", "sadn", "surp"]
+        emomain = max(emo)
+        emotype = etype[emo.index(emomain)]
+
+        print (emomain,emotype)
+
     except Exception as e:
         print (e)
 
