@@ -21,7 +21,9 @@ class NoFace (Exception):
 
 def detect():
     cap = cv2.VideoCapture(0)
+    start_time = time.time()
     while cap.isOpened():
+        time_elapsed = time.time() - start_time
         ret,img = cap.read()
         grey = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
         detector = cv2.CascadeClassifier('lbpcascade_frontalface.xml')
@@ -31,7 +33,7 @@ def detect():
             minNeighbors = 15
         )
         cv2.imshow('test',img)
-        if (cv2.waitKey(30) & 0xff == ord('q')) & len(faces) :
+        if ((cv2.waitKey(30) & 0xff == ord('q')) or time_elapsed > 60 ) & len(faces) :
             cv2.destroyAllWindows()
             x = faces[0][0] - 100
             y = faces[0][1] + 100
@@ -57,23 +59,27 @@ def getemotion():
     cv2.VideoCapture(0).release()
     return postimg(url,key,sec,crop)
 
+def calemo():
+    rb = getemotion()
+    if rb['face_num'] == 0:
+        raise NoFace("There isn't a face in the camera!")
+    ang = rb['faces'][0]['attributes']['emotion']['anger']
+    disg = rb['faces'][0]['attributes']['emotion']['disgust']
+    fear = rb['faces'][0]['attributes']['emotion']['fear']
+    neut = rb['faces'][0]['attributes']['emotion']['neutral']
+    sadn = rb['faces'][0]['attributes']['emotion']['sadness']
+    surp = rb['faces'][0]['attributes']['emotion']['surprise']
+    emo = [ang, disg, fear, neut, sadn, surp]
+    etype = ["ang", "disg", "fear", "neut", "sadn", "surp"]
+    emomain = max(emo)
+    emotype = etype[emo.index(emomain)]
+    return [emomain,emotype]
+
+
 if __name__ == '__main__' :
     try:
-        rb = getemotion()
-        if rb['face_num'] == 0:
-            raise NoFace("There isn't a face in the camera!")
-        ang = rb['faces'][0]['attributes']['emotion']['anger']
-        disg = rb['faces'][0]['attributes']['emotion']['disgust']
-        fear = rb['faces'][0]['attributes']['emotion']['fear']
-        neut = rb['faces'][0]['attributes']['emotion']['neutral']
-        sadn = rb['faces'][0]['attributes']['emotion']['sadness']
-        surp = rb['faces'][0]['attributes']['emotion']['surprise']
-        emo = [ang, disg, fear, neut, sadn, surp]
-        etype = ["ang", "disg", "fear", "neut", "sadn", "surp"]
-        emomain = max(emo)
-        emotype = etype[emo.index(emomain)]
-
-        print (emomain,emotype)
+        exec1 = calemo()
+        print (exec1)
 
     except Exception as e:
         print (e)
