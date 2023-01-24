@@ -3,7 +3,6 @@ import cv2
 import time
 import os
 import numpy as np
-from pkg_resources import EmptyProvider
 import requests
 from PIL import Image
 import io
@@ -33,7 +32,7 @@ def detect():
             minNeighbors = 10
         )
         cv2.imshow('test',img)
-        if ((cv2.waitKey(30) & 0xff == ord('q')) or time_elapsed > 60 ) or len(faces) :
+        if ((cv2.waitKey(30) & 0xff == ord('q'))) or len(faces) :
             x = faces[0][0]
             y = faces[0][1]
             w = faces[0][2]
