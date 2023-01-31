@@ -1,23 +1,25 @@
 #coding = utf8
-import cv2
+import cv2                         #OpenCV 库文件
 import time
 import os
 import numpy as np
 import requests
 from PIL import Image
 import io
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt    #绘图工具matplotlib库文件
 
 url = 'https://api-cn.faceplusplus.com/facepp/v3/detect'
 key = 'Jza_grmxv0wRt1wBvd5645tSUgvvviqC'
 sec = 'sYgt4gwzyVGOWj7_Nbbk7FxiPMwlU6tb'
 
+#定义错误类型：未检测到人脸
 class NoFace (Exception):
         def __init__(self, value):
             self.value = value
         def __str__(self):
             return repr(self.value)
 
+#定义子函数：调用摄像头检测人脸
 def detect():
     cap = cv2.VideoCapture(0)
     start_time = time.time()
@@ -46,6 +48,7 @@ def detect():
             img_pil.show()
             return output.getvalue()
 
+#调用requests用HTTP-POST方法上传照片(同时进行API认证)
 def postimg(url,API_KEY,API_SEC,imgf):
     data = {
         'api_key': API_KEY ,
@@ -56,12 +59,12 @@ def postimg(url,API_KEY,API_SEC,imgf):
     files = {'image_file' : imgf}
     r = requests.post(url,data = data,files = files)
     return r.json()
-
+#汇总执行上述函数
 def getemotion():
     image = detect()
     cv2.VideoCapture(0).release()
     return postimg(url,key,sec,image)
-
+#解码json文件
 def calemo():
     rb = getemotion()
     if rb['face_num'] == 0:
@@ -73,7 +76,7 @@ def calemo():
     surp = rb['faces'][0]['attributes']['emotion']['surprise']
     return [disg,fear,neut,sadn,surp]
 
-
+##主程序
 if __name__ == '__main__' :
     try:
         count = 0
@@ -82,12 +85,12 @@ if __name__ == '__main__' :
             temp = calemo()
             res = res + temp
             count = count + 1
-            time.sleep(20)
+            time.sleep(3)
             temp = []
-
+    #处理中断
     except Exception as e:
         print (e)
-
+    #绘图
     finally :
         print (res)
         x = []
